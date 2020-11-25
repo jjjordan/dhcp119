@@ -246,73 +246,77 @@ function isHex(s) {
     return true;
 }
 
-// Viewmodel for site layout.
-var viewmodel = {
-    // Encoding
-    input: ko.observable(),
-    mikrotik: ko.observable(),
-    cisco: ko.observable(),
-    hex: ko.observable(),
-    spacedHex: ko.observable(),
-    error: ko.observable(),
-    encode: function () {
-        try {
-            this.clear();
+// Returns viewmodel for knockout.js
+function viewmodel() {
+    return {
+        encoder: {
+            input: ko.observable(),
+            mikrotik: ko.observable(),
+            cisco: ko.observable(),
+            hex: ko.observable(),
+            spacedHex: ko.observable(),
+            error: ko.observable(),
+            encode: function () {
+                try {
+                    this.clear();
 
-            if (!this.input()) {
-                return;
-            }
+                    if (!this.input()) {
+                        return;
+                    }
 
-            let result = encodeInput(this.input());
-            this.mikrotik(toMikrotik(result));
-            this.cisco(toCisco(result));
-            this.hex(toHex(result));
-            this.spacedHex(toHex(result, " "));
-        } catch (e) {
-            this.clear();
-            this.error(e);
-        }
-    },
-    clear: function() {
-        [this.mikrotik, this.cisco, this.hex, this.spacedHex, this.error].forEach(function (f) { f(""); });
-    },
-    reset: function() {
-        this.clear();
-        this.input("");
-    },
+                    let result = encodeInput(this.input());
+                    this.mikrotik(toMikrotik(result));
+                    this.cisco(toCisco(result));
+                    this.hex(toHex(result));
+                    this.spacedHex(toHex(result, " "));
+                } catch (e) {
+                    this.clear();
+                    this.error(e);
+                }
+            },
+            clear: function() {
+                [this.mikrotik, this.cisco, this.hex, this.spacedHex, this.error].forEach(function (f) { f(""); });
+            },
+            reset: function() {
+                this.clear();
+                this.input("");
+            },
+        },
 
-    // Decoding
-    decodeInput: ko.observable(),
-    decodeError: ko.observable(),
-    decodeOutput: ko.observable(),
-    decode: function() {
-        try {
-            this.clearDecode();
+        decoder: {
+            input: ko.observable(),
+            error: ko.observable(),
+            output: ko.observable(),
+            decode: function() {
+                try {
+                    this.clear();
 
-            let input = this.decodeInput();
-            if (!input) {
-                return;
-            }
+                    let input = this.input();
+                    if (!input) {
+                        return;
+                    }
 
-            let hex = [];
-            if (input.toLowerCase().indexOf("0x") >= 0 || input.indexOf("'") >= 0) {
-                hex = fromMikrotik(input);
-            } else {
-                hex = fromHex(input);
-            }
+                    let hex = [];
+                    if (input.toLowerCase().indexOf("0x") >= 0 || input.indexOf("'") >= 0) {
+                        hex = fromMikrotik(input);
+                    } else {
+                        hex = fromHex(input);
+                    }
 
-            this.decodeOutput(decode(hex));
-        } catch (e) {
-            this.clearDecode();
-            this.decodeError(e);
-        }
-    },
-    clearDecode: function() {
-        this.decodeOutput("");
-        this.decodeError("");
-    },
-    resetDecode: function() {
-        this.clearDecode();
-        this.decodeInput("");
-    },
-};
+                    this.output(decode(hex));
+                } catch (e) {
+                    this.clear();
+                    this.error(e);
+                }
+            },
+            clear: function() {
+                this.output("");
+                this.error("");
+            },
+            reset: function() {
+                this.clear();
+                this.input("");
+            },
+        },
+    };
+}

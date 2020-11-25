@@ -34,96 +34,98 @@
           <code>google.com yahoo.com</code>.
           </p>
 
-          <p><input type="text" data-bind="textInput: input" style="width: 100%; padding: 0.5em;" /></p>
-          <p data-bind="if: error"><i><b><span>Error: </span><span data-bind="text: error" style="color: red;"></span></b></i></p>
+          <div data-bind="with: encoder">
+            <p><input type="text" data-bind="textInput: input" style="width: 100%; padding: 0.5em;" /></p>
+            <p data-bind="if: error"><i><b><span>Error: </span><span data-bind="text: error" style="color: red;"></span></b></i></p>
 
-          <center>
-            <p>
-              <a class="btn" data-bind="click: encode">Encode</a>
-              <a class="btn" data-bind="click: reset">Reset</a>
-            </p>
-          </center>
+            <center>
+              <p>
+                <a class="btn" data-bind="click: encode">Encode</a>
+                <a class="btn" data-bind="click: reset">Reset</a>
+              </p>
+            </center>
 
-          <hr/>
+            <hr/>
 
-          <h3>Result</h3>
+            <h3>Result</h3>
 
-          <div class="tab">
-            <button class="tablinks" onclick="tab(event, 'Mikrotik')" id="defaultTab">Mikrotik RouterOS</button>
-            <button class="tablinks" onclick="tab(event, 'Cisco')">Cisco IOS</button>
-            <button class="tablinks" onclick="tab(event, 'Windows')">Windows</button>
-            <button class="tablinks" onclick="tab(event, 'Juniper')">Juniper SRX</button>
-            <button class="tablinks" onclick="tab(event, 'ZyXEL')">ZyXEL Keenetic</button>
-            <button class="tablinks" onclick="tab(event, 'Hex')">Raw hex</button>
-          </div>
+            <div class="tab">
+              <button class="tablinks" onclick="tab(event, 'Mikrotik')" id="defaultTab">Mikrotik RouterOS</button>
+              <button class="tablinks" onclick="tab(event, 'Cisco')">Cisco IOS</button>
+              <button class="tablinks" onclick="tab(event, 'Windows')">Windows</button>
+              <button class="tablinks" onclick="tab(event, 'Juniper')">Juniper SRX</button>
+              <button class="tablinks" onclick="tab(event, 'ZyXEL')">ZyXEL Keenetic</button>
+              <button class="tablinks" onclick="tab(event, 'Hex')">Raw hex</button>
+            </div>
 
-          <div id="Mikrotik" class="tabcontent">
-            <p>
-              Here is an example that creates a new option, and appends it to an OptionSet.  You must
-              then add this OptionSet to your DHCP server configuration.  If you later want to change
-              this value, adjustments would be needed to the below:
-            </p>
-            <code class="codeblock">
-              <span>/ip dhcp-server option</span><br>
-              <span>add code=119 name=domain-search value="<span data-bind="text: mikrotik"></span>"</span><br>
-              <span>/ip dhcp-server option sets</span><br>
-              <span>add name=domain-search-set options=domain-search</span><br>
-            </code>
+            <div id="Mikrotik" class="tabcontent">
+              <p>
+                Here is an example that creates a new option, and appends it to an OptionSet.  You must
+                then add this OptionSet to your DHCP server configuration.  If you later want to change
+                this value, adjustments would be needed to the below:
+              </p>
+              <code class="codeblock">
+                <span>/ip dhcp-server option</span><br>
+                <span>add code=119 name=domain-search value="<span data-bind="text: mikrotik"></span>"</span><br>
+                <span>/ip dhcp-server option sets</span><br>
+                <span>add name=domain-search-set options=domain-search</span><br>
+              </code>
 
-            <hr>
-            <p>Raw option value:</p>
-            <p><input type="text" data-bind="textInput: mikrotik()" style="width: 100%; padding: 0.5em;" /></p>
-          </div>
+              <hr>
+              <p>Raw option value:</p>
+              <p><input type="text" data-bind="textInput: mikrotik()" style="width: 100%; padding: 0.5em;" /></p>
+            </div>
 
-          <div id="Cisco" class="tabcontent">
-            <p>(I'm not sure how to do this, please open a PR if you have better instructions)</p>
-            <code class="codeblock">
-              <span>ip dhcp pool POOL_NAME</span><br>
-              <span>&nbsp;&nbsp;&nbsp;&nbsp;option 119 hex <span data-bind="text: cisco"></span></span><br>
-            </code>
+            <div id="Cisco" class="tabcontent">
+              <p>(I'm not sure how to do this, please open a PR if you have better instructions)</p>
+              <code class="codeblock">
+                <span>ip dhcp pool POOL_NAME</span><br>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;option 119 hex <span data-bind="text: cisco"></span></span><br>
+              </code>
 
-            <hr>
-            <p>Raw option value:</p>
-            <p><input type="text" data-bind="textInput: cisco()" style="width: 100%; padding: 0.5em;" /></p>
-          </div>
+              <hr>
+              <p>Raw option value:</p>
+              <p><input type="text" data-bind="textInput: cisco()" style="width: 100%; padding: 0.5em;" /></p>
+            </div>
 
-          <div id="Windows" class="tabcontent">
-            <p>(I'm not sure how to do this, please open a PR if you have better instructions)</p>
-            <code class="codeblock">
-              <span>netsh dhcp server V4 set optionvalue 119 BYTE <span data-bind="text: spacedHex"></span></span><br>
-            </code>
+            <div id="Windows" class="tabcontent">
+              <p>(I'm not sure how to do this, please open a PR if you have better instructions)</p>
+              <code class="codeblock">
+                <span>netsh dhcp server V4 set optionvalue 119 BYTE <span data-bind="text: spacedHex"></span></span><br>
+              </code>
 
-            <hr>
-            <p>Raw option value:</p>
-            <p><input type="text" data-bind="textInput: spacedHex()" style="width: 100%; padding: 0.5em;" /></p>
-          </div>
+              <hr>
+              <p>Raw option value:</p>
+              <p><input type="text" data-bind="textInput: spacedHex()" style="width: 100%; padding: 0.5em;" /></p>
+            </div>
 
-          <div id="Juniper" class="tabcontent">
-            <p>(I'm not sure how to do this, please open a PR if you have better instructions)</p>
-            <code class="codeblock">
-              <span>set access address-assignment pool POOL_NAME family inet \</span><br>
-              <span>dhcp-attributes option 119 hex-string <span data-bind="text: hex"></span></span><br>
-            </code>
+            <div id="Juniper" class="tabcontent">
+              <p>(I'm not sure how to do this, please open a PR if you have better instructions)</p>
+              <code class="codeblock">
+                <span>set access address-assignment pool POOL_NAME family inet \</span><br>
+                <span>dhcp-attributes option 119 hex-string <span data-bind="text: hex"></span></span><br>
+              </code>
 
-            <hr>
-            <p>Raw option value:</p>
-            <p><input type="text" data-bind="textInput: hex()" style="width: 100%; padding: 0.5em;" /></p>
-          </div>
+              <hr>
+              <p>Raw option value:</p>
+              <p><input type="text" data-bind="textInput: hex()" style="width: 100%; padding: 0.5em;" /></p>
+            </div>
 
-          <div id="ZyXEL" class="tabcontent">
-            <p>(I'm not sure how to do this, please open a PR if you have better instructions)</p>
-            <code class="codeblock">
-              <span>ip dhcp pool POOL_NAME option 119 hex <span data-bind="text: hex"></span></span><br>
-            </code>
+            <div id="ZyXEL" class="tabcontent">
+              <p>(I'm not sure how to do this, please open a PR if you have better instructions)</p>
+              <code class="codeblock">
+                <span>ip dhcp pool POOL_NAME option 119 hex <span data-bind="text: hex"></span></span><br>
+              </code>
 
-            <hr>
-            <p>Raw option value:</p>
-            <p><input type="text" data-bind="textInput: hex()" style="width: 100%; padding: 0.5em;" /></p>
-          </div>
+              <hr>
+              <p>Raw option value:</p>
+              <p><input type="text" data-bind="textInput: hex()" style="width: 100%; padding: 0.5em;" /></p>
+            </div>
 
-          <div id="Hex" class="tabcontent">
-            <p>Hex:</p>
-            <p><input type="text" data-bind="textInput: hex()" style="width: 100%; padding: 0.5em;" /></p>
+            <div id="Hex" class="tabcontent">
+              <p>Hex:</p>
+              <p><input type="text" data-bind="textInput: hex()" style="width: 100%; padding: 0.5em;" /></p>
+            </div>
           </div>
 
           <hr/>
@@ -134,26 +136,28 @@
           Enter a hex or Mikrotik input string here to decode the domain search list
           </p>
 
-          <p><input type="text" data-bind="textInput: decodeInput" style="width: 100%; padding: 0.5em;" /></p>
-          <p data-bind="if: decodeError"><i><b><span>Error: </span><span data-bind="text: decodeError" style="color: red;"></span></b></i></p>
+          <div data-bind="with: decoder">
+            <p><input type="text" data-bind="textInput: input" style="width: 100%; padding: 0.5em;" /></p>
+            <p data-bind="if: error"><i><b><span>Error: </span><span data-bind="text: error" style="color: red;"></span></b></i></p>
 
-          <center>
-            <p>
-              <a class="btn" data-bind="click: decode">Decode</a>
-              <a class="btn" data-bind="click: resetDecode">Reset</a>
-            </p>
-          </center>
+            <center>
+              <p>
+                <a class="btn" data-bind="click: decode">Decode</a>
+                <a class="btn" data-bind="click: reset">Reset</a>
+              </p>
+            </center>
 
-          <hr/>
+            <hr/>
 
-          <h3>Result</h3>
-          <p><input type="text" data-bind="textInput: decodeOutput()" style="width: 100%; padding: 0.5em;" /></p>
+            <h3>Result</h3>
+            <p><input type="text" data-bind="textInput: output()" style="width: 100%; padding: 0.5em;" /></p>
+          </div>
         </div>
       </div>
     </div>
 
     <script type="text/javascript">
-      ko.applyBindings(viewmodel);
+      ko.applyBindings(viewmodel());
 
       function tab(e, w) {
           function toList(ec) {
