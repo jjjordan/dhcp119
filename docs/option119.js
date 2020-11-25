@@ -320,3 +320,17 @@ function viewmodel() {
         },
     };
 }
+
+// For Node (testing)
+(module || {}).exports = {
+    encodeInput: encodeInput,
+    encode: encode,
+    toMikrotik: toMikrotik,
+    toHex: toHex,
+    toCisco: toCisco,
+    decode: decode,
+    readName: readName,
+    decodeSegment: decodeSegment,
+    fromMikrotik: fromMikrotik,
+    fromHex: fromHex,
+};

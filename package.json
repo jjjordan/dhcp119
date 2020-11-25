@@ -1,0 +1,15 @@
+{
+  "name": "option119_tests",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "John J. Jordan",
+  "license": "GPLv3+",
+  "private": true,
+  "dependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^8.2.1"
+  },
+  "scripts": {
+    "test": "node_modules/.bin/mocha"
+  }
+}
