@@ -116,7 +116,7 @@ function toCisco(encoded) {
     function cvtCisco(e, idx) {
         return (idx > 0 && idx % 2 == 0 ? "." : "") + cvtHex(e);
     }
-    
+
     return encoded.map(cvtCisco).join("");
 }
 
@@ -125,15 +125,129 @@ function octetHex(n) {
     return ("0" + n.toString(16).toUpperCase()).slice(-2);
 }
 
+function decode(input) {
+    let result = [];
+
+    for (let i = 0; i < input.length;) {
+        let name = readName(input, i, i - 1);
+        result.push(name.name);
+        i = name.next;
+    }
+
+    return result.join(" ");
+}
+
+function readName(input, idx, maxRef) {
+    let result = [];
+    for (let i = idx; i < input.length;) {
+        let seg = decodeSegment(input, i);
+        if (seg.kind == "end") {
+            return {name: result.join("."), next: seg.next};
+        } else if (seg.kind == "text") {
+            result.push(seg.text);
+            i = seg.next;
+        } else if (seg.kind == "ref") {
+            if (seg.ptr >= maxRef) {
+                throw "Invalid forward or circular reference";
+            }
+
+            result.push(readName(input, seg.ptr, maxRef).name);
+            i = seg.next;
+        } else {
+            throw "Unknown segment kind";
+        }
+    }
+
+    throw "Missing END marker";
+}
+
+function decodeSegment(input, idx) {
+    let d = input[idx];
+    if (d == 0) {
+        return {kind: "end", next: idx + 1};
+    } else if ((d & 0xc0) == 0xc0) {
+        return {kind: "ref", next: idx + 2, ptr: (d & 0x3f) << 8 | input[idx + 1]};
+    } else if ((d & 0xc0) != 0) {
+        throw "Bad start byte";
+    } else if ((idx + d) >= input.length) {
+        throw "Segment extends beyond end of input";
+    } else {
+        return {kind: "text", next: idx + d + 1, text: String.fromCharCode.apply(null, input.slice(idx + 1, idx + d + 1))};
+    }
+}
+
+// Converts a Mikrotik-formatted input string to an array of numbers.
+function fromMikrotik(s) {
+    let result = [];
+    for (let i = 0; i < s.length;) {
+        if (s.charAt(i) == "'") {
+            for (i++; i < s.length && s.charAt(i) != "'"; i++) {
+                result.push(s.charCodeAt(i));
+            }
+
+            if (s.charAt(i) == "'") {
+                i++;
+            } else {
+                throw "Unterminated string";
+            }
+        } else if (s.substr(i, 2).toLowerCase() == "0x") {
+            for (i += 2; i < s.length - 1 && isHex(s.substr(i, 2)); i += 2) {
+                result.push(parseInt(s.substr(i, 2), 16));
+            }
+        } else {
+            throw "Unexpected input";
+        }
+    }
+
+    return result;
+}
+
+// Converts a hex input string to an array of numbers.
+function fromHex(s) {
+    let result = [];
+
+    for (let i = 0; i < s.length; i++) {
+        if (" .;:\t".indexOf(s.charAt(i)) >= 0) {
+            continue;
+        }
+
+        if (i == s.length - 1) {
+            throw "Need an even number of hex digits";
+        }
+
+        let octet = s.substr(i, 2);
+        if (!isHex(octet)) {
+            throw "Unexpected hex character";
+        }
+
+        result.push(parseInt(octet, 16));
+        i++;
+    }
+
+    return result;
+}
+
+// Returns true if all characters in the string are hex digits.
+function isHex(s) {
+    for (let i = 0; i < s.length; i++) {
+        if ("0123456789abcdefABCDEF".indexOf(s.charAt(i)) < 0) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 // Viewmodel for site layout.
 var viewmodel = {
+    // Encoding
     input: ko.observable(),
     mikrotik: ko.observable(),
     cisco: ko.observable(),
     hex: ko.observable(),
     spacedHex: ko.observable(),
     error: ko.observable(),
-    run: function () {
+    encode: function () {
         try {
             this.clear();
 
@@ -157,5 +271,40 @@ var viewmodel = {
     reset: function() {
         this.clear();
         this.input("");
+    },
+
+    // Decoding
+    decodeInput: ko.observable(),
+    decodeError: ko.observable(),
+    decodeOutput: ko.observable(),
+    decode: function() {
+        try {
+            this.clearReverse();
+
+            let input = this.decodeInput();
+            if (!input) {
+                return;
+            }
+
+            let hex = [];
+            if (input.toLowerCase().indexOf("0x") >= 0 || input.indexOf("'") >= 0) {
+                hex = fromMikrotik(input);
+            } else {
+                hex = fromHex(input);
+            }
+
+            this.decodeOutput(decode(hex));
+        } catch (e) {
+            this.clearReverse();
+            this.decodeError(e);
+        }
+    },
+    clearReverse: function() {
+        this.decodeOutput("");
+        this.decodeError("");
+    },
+    resetReverse: function() {
+        this.clearReverse();
+        this.decodeInput("");
     },
 };
