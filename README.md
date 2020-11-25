@@ -5,7 +5,8 @@
 Here's an encoder for DHCP Option 119, which sends domain search lists to
 clients.  Many DHCP server implementations do not encode this option for
 you, instead expecting the administrator to do it.  This repo provides a
-quick, browser-based encoder for anyone to use quickly.
+quick, browser-based encoder so you don't need to roll your own script or
+even fire up Powershell/Python.
 
 Here are some references that helped to build this:
 * A [blog post](https://www.medo64.com/2017/04/adding-domain-search-option-to-mikrotik-dhcp/) describing the process to add this option to Mikrotik RouterOS.
