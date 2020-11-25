@@ -36,12 +36,14 @@ function encode(domains) {
 
     for (let i = 0; i < domains.length; i++) {
         let domain = domains[i];
+        let branched = false;
         for (let t = 0; t < domain.length; t++) {
             let subdomain = domain.substr(t);
             if (typeof refs[subdomain] === 'number') {
                 let ptr = 0xC000 | refs[subdomain];
                 result.push((ptr >> 8) & 0xff);
                 result.push(ptr & 0xff);
+                branched = true;
                 break;
             }
 
@@ -62,7 +64,9 @@ function encode(domains) {
             }
         }
 
-        result.push(0);
+        if (!branched) {
+            result.push(0);
+        }
     }
 
     return result;
@@ -155,7 +159,7 @@ function readName(input, idx) {
             }
 
             result.push(readName(input, seg.ptr).name);
-            i = seg.next;
+            return {name: result.join("."), next: seg.next};
         } else {
             throw "Unknown segment kind";
         }
