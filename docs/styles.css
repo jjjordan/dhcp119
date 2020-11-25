@@ -297,3 +297,8 @@ code {
   border: 1px solid #ccc;
   border-top: none;
 }
+
+html {
+  overflow: -moz-scrollbars-vertical; 
+  overflow-y: scroll;
+}

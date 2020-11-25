@@ -125,11 +125,12 @@ function octetHex(n) {
     return ("0" + n.toString(16).toUpperCase()).slice(-2);
 }
 
+// Decodes an array of numbers (representing bytes) to a domain search list.
 function decode(input) {
     let result = [];
 
     for (let i = 0; i < input.length;) {
-        let name = readName(input, i, i - 1);
+        let name = readName(input, i);
         result.push(name.name);
         i = name.next;
     }
@@ -137,7 +138,9 @@ function decode(input) {
     return result.join(" ");
 }
 
-function readName(input, idx, maxRef) {
+// Reads a domain name from the input starting from idx and extending until
+// an END marker (00) is found.
+function readName(input, idx) {
     let result = [];
     for (let i = idx; i < input.length;) {
         let seg = decodeSegment(input, i);
@@ -146,12 +149,12 @@ function readName(input, idx, maxRef) {
         } else if (seg.kind == "text") {
             result.push(seg.text);
             i = seg.next;
-        } else if (seg.kind == "ref") {
-            if (seg.ptr >= maxRef) {
+        } else if (seg.kind == "ptr") {
+            if (seg.ptr >= idx) {
                 throw "Invalid forward or circular reference";
             }
 
-            result.push(readName(input, seg.ptr, maxRef).name);
+            result.push(readName(input, seg.ptr).name);
             i = seg.next;
         } else {
             throw "Unknown segment kind";
@@ -161,12 +164,13 @@ function readName(input, idx, maxRef) {
     throw "Missing END marker";
 }
 
+// Decodes a single segment from input starting from idx.
 function decodeSegment(input, idx) {
     let d = input[idx];
     if (d == 0) {
         return {kind: "end", next: idx + 1};
     } else if ((d & 0xc0) == 0xc0) {
-        return {kind: "ref", next: idx + 2, ptr: (d & 0x3f) << 8 | input[idx + 1]};
+        return {kind: "ptr", next: idx + 2, ptr: (d & 0x3f) << 8 | input[idx + 1]};
     } else if ((d & 0xc0) != 0) {
         throw "Bad start byte";
     } else if ((idx + d) >= input.length) {
@@ -279,7 +283,7 @@ var viewmodel = {
     decodeOutput: ko.observable(),
     decode: function() {
         try {
-            this.clearReverse();
+            this.clearDecode();
 
             let input = this.decodeInput();
             if (!input) {
@@ -295,16 +299,16 @@ var viewmodel = {
 
             this.decodeOutput(decode(hex));
         } catch (e) {
-            this.clearReverse();
+            this.clearDecode();
             this.decodeError(e);
         }
     },
-    clearReverse: function() {
+    clearDecode: function() {
         this.decodeOutput("");
         this.decodeError("");
     },
-    resetReverse: function() {
-        this.clearReverse();
+    resetDecode: function() {
+        this.clearDecode();
         this.decodeInput("");
     },
 };
