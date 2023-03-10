@@ -315,7 +315,7 @@ function viewmodel() {
                 }
             },
             clear: function() {
-                [this.mikrotik, this.cisco, this.hex, this.spacedHex, this.error].forEach(function (f) { f(""); });
+                [this.mikrotik, this.cisco, this.hex, this.spacedHex, this.cstring, this.error].forEach(function (f) { f(""); });
             },
             reset: function() {
                 this.clear();
