@@ -255,6 +255,35 @@ function isHex(s) {
     return true;
 }
 
+// Parses a c-like string literal into an array of numbers
+// NOTE: only supports octal and hex escapes.
+function fromCstring(s) {
+    let result = [];
+    for (let i = 0; i < s.length; i++) {
+        let c = s.charCodeAt(i);
+        if (c == 0x5C) { // backslash
+            if (s.charAt(i + 1) == "x") {
+                result.push(parseInt(s.substr(i + 2, 2), 16));
+                i += 3;
+            } else {
+                let length = 0;
+                let start = i;
+                for (i++; "01234567".indexOf(s.charAt(i)); i++, length++) {}
+
+                if (length == 0) {
+                    throw "Unsupported escape code in C string";
+                }
+                
+                result.push(parseInt(s.substr(start, length), 8));
+            }
+        } else {
+            result.push(c);
+        }
+    }
+    
+    return result;
+}
+
 // Returns viewmodel for knockout.js
 function viewmodel() {
     return {
@@ -308,7 +337,9 @@ function viewmodel() {
                     }
 
                     let hex = [];
-                    if (input.toLowerCase().indexOf("0x") >= 0 || input.indexOf("'") >= 0) {
+                    if (input.indexOf("\\") >= 0) {
+                        hex = fromCstring(input);
+                    } else if (input.toLowerCase().indexOf("0x") >= 0 || input.indexOf("'") >= 0) {
                         hex = fromMikrotik(input);
                     } else {
                         hex = fromHex(input);
