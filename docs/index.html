@@ -55,6 +55,7 @@
               <button class="tablinks" onclick="tab(event, 'Windows')">Windows</button>
               <button class="tablinks" onclick="tab(event, 'Juniper')">Juniper SRX</button>
               <button class="tablinks" onclick="tab(event, 'ZyXEL')">ZyXEL Keenetic</button>
+              <button class="tablinks" onclick="tab(event, 'systemd')">systemd-network</button>
               <button class="tablinks" onclick="tab(event, 'Hex')">Raw hex</button>
             </div>
 
@@ -120,6 +121,23 @@
               <hr>
               <p>Raw option value:</p>
               <p><input type="text" data-bind="textInput: hex()" style="width: 100%; padding: 0.5em;" /></p>
+            </div>
+
+            <div id="systemd" class="tabcontent">
+              <p>
+                In the <code>interface.network</code> file in which the DHCP server is configured, you can
+                configure option 119 with the <code>SendOption</code> parameter as demonstrated below:
+              </p>
+              <code class="codeblock">
+                <span>[Network]</span><br>
+                <span>DHCP=yes</span><br>
+                <span></span><br>
+                <span>[DHCPv4]</span><br>
+                <span>SendOption=119:string:<span data-bind="text: cstring"></span></span><br>
+              </code>
+              <hr>
+              <p>Raw option value:</p>
+              <p><input type="text" data-bind="textInput: cstring()" style="width: 100%; padding: 0.5em;" /></p>
             </div>
 
             <div id="Hex" class="tabcontent">

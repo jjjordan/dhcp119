@@ -124,6 +124,15 @@ function toCisco(encoded) {
     return encoded.map(cvtCisco).join("");
 }
 
+// Converts a result from encode() to a C-compatible string
+function toCstring(encoded) {
+    function cvtCstring(e) {
+        return typeof e == 'number' ? "\\x" + octetHex(e) : e;
+    }
+
+    return encoded.map(cvtCstring).join("");
+}
+
 // Converts a number to a two-byte hex string.
 function octetHex(n) {
     return ("0" + n.toString(16).toUpperCase()).slice(-2);
@@ -255,6 +264,7 @@ function viewmodel() {
             cisco: ko.observable(),
             hex: ko.observable(),
             spacedHex: ko.observable(),
+            cstring: ko.observable(),
             error: ko.observable(),
             encode: function () {
                 try {
@@ -269,6 +279,7 @@ function viewmodel() {
                     this.cisco(toCisco(result));
                     this.hex(toHex(result));
                     this.spacedHex(toHex(result, " "));
+                    this.cstring(toCstring(result));
                 } catch (e) {
                     this.clear();
                     this.error(e);
