@@ -17,14 +17,9 @@
 
 // ==============================================================================
 
-// Encodes raw input (space-separated domain name list)
-function encodeInput(s) {
-    let parts = s.toLowerCase().split(" ").filter(function (p) { return p.length > 0; });
-    if (parts.length > 0) {
-        return encode(parts);
-    } else {
-        throw "Empty input";
-    }
+// Splits raw input (space-separated domain name list) to array
+function splitInput(s) {
+    return s.toLowerCase().split(" ").filter(function (p) { return p.length > 0; });
 }
 
 // Encodes an array of domain names
@@ -264,7 +259,12 @@ function viewmodel() {
                         return;
                     }
 
-                    let result = encodeInput(this.input());
+                    let input = splitInput(this.input());
+                    if (input.length == 0) {
+                        throw "Empty input";
+                    }
+                    
+                    let result = encode(input);
                     this.mikrotik(toMikrotik(result));
                     this.cisco(toCisco(result));
                     this.hex(toHex(result));
@@ -323,7 +323,7 @@ function viewmodel() {
 
 // For Node (testing)
 (module || {}).exports = {
-    encodeInput: encodeInput,
+    splitInput: splitInput,
     encode: encode,
     toMikrotik: toMikrotik,
     toHex: toHex,
