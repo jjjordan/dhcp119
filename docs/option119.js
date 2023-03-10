@@ -268,7 +268,7 @@ function fromCstring(s) {
             } else {
                 let length = 0;
                 let start = i;
-                for (i++; "01234567".indexOf(s.charAt(i)); i++, length++) {}
+                for (i++; "01234567".indexOf(s.charAt(i)) >= 0; i++, length++) {}
 
                 if (length == 0) {
                     throw "Unsupported escape code in C string";
