@@ -17,14 +17,9 @@
 
 // ==============================================================================
 
-// Encodes raw input (space-separated domain name list)
-function encodeInput(s) {
-    let parts = s.toLowerCase().split(" ").filter(function (p) { return p.length > 0; });
-    if (parts.length > 0) {
-        return encode(parts);
-    } else {
-        throw "Empty input";
-    }
+// Splits raw input (space-separated domain name list) to array
+function splitInput(s) {
+    return s.toLowerCase().split(" ").filter(function (p) { return p.length > 0; });
 }
 
 // Encodes an array of domain names
@@ -36,9 +31,19 @@ function encode(domains) {
 
     for (let i = 0; i < domains.length; i++) {
         let domain = domains[i];
+
+        // Dot at the end of the domain OK (there's an implicit one according to the DNS spec),
+        // but multiples are not.
+        if (domain.endsWith("..")) {
+            throw "Domain cannot end with multiple periods";
+        } else if (domain.endsWith(".")) {
+            // Chop it off.
+            domain = domain.substring(0, domain.length - 1);
+        }
+
         let branched = false;
         for (let t = 0; t < domain.length; t++) {
-            let subdomain = domain.substr(t);
+            let subdomain = domain.substring(t);
             if (typeof refs[subdomain] === 'number') {
                 let ptr = 0xC000 | refs[subdomain];
                 result.push((ptr >> 8) & 0xff);
@@ -344,7 +349,12 @@ function viewmodel() {
                         return;
                     }
 
-                    let result = encodeInput(this.input());
+                    let input = splitInput(this.input());
+                    if (input.length == 0) {
+                        throw "Empty input";
+                    }
+                    
+                    let result = encode(input);
                     this.mikrotik(toMikrotik(result));
                     this.cisco(toCisco(result));
                     this.hex(toHex(result));
@@ -403,3 +413,17 @@ function viewmodel() {
         },
     };
 }
+
+// For Node (testing)
+(module || {}).exports = exports = {
+    splitInput: splitInput,
+    encode: encode,
+    toMikrotik: toMikrotik,
+    toHex: toHex,
+    toCisco: toCisco,
+    decode: decode,
+    readName: readName,
+    decodeSegment: decodeSegment,
+    fromMikrotik: fromMikrotik,
+    fromHex: fromHex,
+};
