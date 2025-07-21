@@ -73,6 +73,20 @@ describe("fromHex", function () {
     });
 });
 
+describe("fromMikrotik", function () {
+    it("handles string literals", function () {
+        assert.equal(decode(fromMikrotik("0x02s'65'0x06'google'0x03'com'0x00")), "65.google.com");
+    });
+
+    it("handles decimal literals", function () {
+        assert.equal(decode(fromMikrotik("0x01'65'0x06'google'0x03'com'0x00")), "A.google.com");
+    });
+
+    it("handles IP address literals", function () {
+        assert.equal(decode(fromMikrotik("0x06'google'0x03'com'0x000579'97.104.111.111'0xC007")), "google.com yahoo.com");
+    });
+});
+
 function encodeDecodeHex(domains) {
     return decode(fromHex(toHex(encode(splitInput(domains)))));
 }

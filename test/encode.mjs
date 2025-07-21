@@ -67,9 +67,12 @@ describe("toMikrotik", function () {
     });
 
     it("properly handles numeric subdomains", function () {
-        // assert.deepEqual(
-        //     toMikrotik(encode(["0.google.com"])),
-        //     "0x01s'0'0x06'google'0x03'com'0x00");
+        assert.deepEqual(
+            toMikrotik(encode(["0.google.com"])),
+            "0x01s'0'0x06'google'0x03'com'0x00");
+        assert.deepEqual(
+            toMikrotik(encode(["555.google.com"])),
+            "0x03s'555'0x06'google'0x03'com'0x00");
     });
 });
 
