@@ -31,9 +31,19 @@ function encode(domains) {
 
     for (let i = 0; i < domains.length; i++) {
         let domain = domains[i];
+
+        // Dot at the end of the domain OK (there's an implicit one according to the DNS spec),
+        // but multiples are not.
+        if (domain.endsWith("..")) {
+            throw "Domain cannot end with multiple periods";
+        } else if (domain.endsWith(".")) {
+            // Chop it off.
+            domain = domain.substring(0, domain.length - 1);
+        }
+
         let branched = false;
         for (let t = 0; t < domain.length; t++) {
-            let subdomain = domain.substr(t);
+            let subdomain = domain.substring(t);
             if (typeof refs[subdomain] === 'number') {
                 let ptr = 0xC000 | refs[subdomain];
                 result.push((ptr >> 8) & 0xff);
@@ -322,7 +332,7 @@ function viewmodel() {
 }
 
 // For Node (testing)
-(module || {}).exports = {
+(module || {}).exports = exports = {
     splitInput: splitInput,
     encode: encode,
     toMikrotik: toMikrotik,

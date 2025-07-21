@@ -6,8 +6,8 @@
   "license": "GPLv3+",
   "private": true,
   "dependencies": {
-    "chai": "^4.2.0",
-    "mocha": "^8.2.1"
+    "chai": "^5.2.1",
+    "mocha": "^11.7.1"
   },
   "scripts": {
     "test": "node_modules/.bin/mocha"

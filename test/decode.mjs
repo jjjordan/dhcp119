@@ -1,39 +1,41 @@
-const option119 = require("../docs/option119");
-const assert = require("chai").assert;
+import { assert } from 'chai';
+import option119 from '../docs/option119.js';
 
 const encode = option119.encode,
       splitInput = option119.splitInput,
       toHex = option119.toHex,
       toCisco = option119.toCisco,
+      toMikrotik = option119.toMikrotik,
       decode = option119.decode,
       readName = option119.readName,
       decodeSegment = option119.decodeSegment,
       fromMikrotik = option119.fromMikrotik,
       fromHex = option119.fromHex;
 
-function encodeDecodeHex(domains) {
-    return decode(fromHex(toHex(encode(splitInput(domains)))));
-}
-
 describe("decode", function () {
-    it("properly decodes the result of encode", function () {
-        assert.equal(
-            encodeDecodeHex("google.com telegraph.co.uk"),
-            "google.com telegraph.co.uk");
-        assert.equal(
-            encodeDecodeHex("mydomain.home users.mydomain.home remote.users.mydomain.home"),
-            "mydomain.home users.mydomain.home remote.users.mydomain.home");
-        assert.equal(
-            encodeDecodeHex("remote.users.mydomain.home users.mydomain.home mydomain.home"),
-            "remote.users.mydomain.home users.mydomain.home mydomain.home");
-        assert.equal(
-            encodeDecodeHex("services.myhome.me devices.myhome.me myhome.me something-else.com"),
-            "services.myhome.me devices.myhome.me myhome.me something-else.com");
+    let roundtrip_cases = [
+        "google.com telegraph.co.uk",
+        "mydomain.home users.mydomain.home remote.users.mydomain.home",
+        "remote.users.mydomain.home users.mydomain.home mydomain.home",
+        "services.myhome.me devices.myhome.me myhome.me something-else.com",
+        "google.com 0.google.com 555.yahoo.com"
+    ];
+
+    it("properly decodes the result of encode (hex)", function () {
+        roundtrip_cases.forEach(x => assert.equal(encodeDecodeHex(x), x));
+    });
+
+    it("properly decodes the result of encode (Mikrotik)", function () {
+        roundtrip_cases.forEach(x => assert.equal(encodeDecodeMikrotik(x), x));
+    });
+
+    it("properly decodes the result of encode (Cisco)", function () {
+        roundtrip_cases.forEach(x => assert.equal(encodeDecodeCisco(x), x));
     });
 
     it("decodes samples from the web", function () {
         
-    }); 
+    });
 
     it("rejects bad inputs", function () {
         // Infinite loop
@@ -46,6 +48,7 @@ describe("decode", function () {
         assert.throws(() => decode([4, 116, 101, 115, 116, 3, 99, 111, 109]));
         
         // Read past end
+        assert.throws(() => decode([3, 65, 66, 67, 4, 65, 66, 67]));
     });
 });
 
@@ -70,5 +73,14 @@ describe("fromHex", function () {
     });
 });
 
-describe("fromMikrotik", function () {
-});
+function encodeDecodeHex(domains) {
+    return decode(fromHex(toHex(encode(splitInput(domains)))));
+}
+
+function encodeDecodeMikrotik(domains) {
+    return decode(fromMikrotik(toMikrotik(encode(splitInput(domains)))));
+}
+
+function encodeDecodeCisco(domains) {
+    return decode(fromHex(toCisco(encode(splitInput(domains)))));
+}

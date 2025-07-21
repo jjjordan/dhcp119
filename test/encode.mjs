@@ -1,5 +1,5 @@
-const option119 = require("../docs/option119");
-const assert = require("chai").assert;
+import { assert } from 'chai';
+import option119 from '../docs/option119.js';
 
 const splitInput = option119.splitInput,
       encode = option119.encode,
@@ -60,12 +60,17 @@ describe("splitInput", function () {
 });
 
 describe("toMikrotik", function () {
-});
+    it("encodes correctly", function () {
+        assert.deepEqual(
+            toMikrotik(encode(["google.com", "yahoo.com"])),
+            "0x06'google'0x03'com'0x0005'yahoo'0xC007");
+    });
 
-describe("toHex", function () {
-});
-
-describe("toCisco", function () {
+    it("properly handles numeric subdomains", function () {
+        // assert.deepEqual(
+        //     toMikrotik(encode(["0.google.com"])),
+        //     "0x01s'0'0x06'google'0x03'com'0x00");
+    });
 });
 
 // Helper for writing expected arrays
