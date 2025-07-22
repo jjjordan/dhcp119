@@ -17,14 +17,9 @@
 
 // ==============================================================================
 
-// Encodes raw input (space-separated domain name list)
-function encodeInput(s) {
-    let parts = s.toLowerCase().split(" ").filter(function (p) { return p.length > 0; });
-    if (parts.length > 0) {
-        return encode(parts);
-    } else {
-        throw "Empty input";
-    }
+// Splits raw input (space-separated domain name list) to array
+function splitInput(s) {
+    return s.toLowerCase().split(" ").filter(function (p) { return p.length > 0; });
 }
 
 // Encodes an array of domain names
@@ -36,9 +31,19 @@ function encode(domains) {
 
     for (let i = 0; i < domains.length; i++) {
         let domain = domains[i];
+
+        // Dot at the end of the domain OK (there's an implicit one according to the DNS spec),
+        // but multiples are not.
+        if (domain.endsWith("..")) {
+            throw "Domain cannot end with multiple periods";
+        } else if (domain.endsWith(".")) {
+            // Chop it off.
+            domain = domain.substring(0, domain.length - 1);
+        }
+
         let branched = false;
         for (let t = 0; t < domain.length; t++) {
-            let subdomain = domain.substr(t);
+            let subdomain = domain.substring(t);
             if (typeof refs[subdomain] === 'number') {
                 let ptr = 0xC000 | refs[subdomain];
                 result.push((ptr >> 8) & 0xff);
@@ -83,11 +88,23 @@ function toMikrotik(encoded) {
                 result.push(octetHex(encoded[i]));
             }
         } else if (typeof encoded[i] == 'string') {
-            result.push("'");
+            let segment = [];
             for (; typeof encoded[i] == 'string'; i++) {
-                result.push(encoded[i]);
+                segment.push(encoded[i]);
             }
 
+            // Special case: if a string is numeric (decimal) then it needs an 's'
+            // prefix or else it will be interpreted as a number.
+            // See: https://help.mikrotik.com/docs/spaces/ROS/pages/24805500/DHCP#DHCP-DHCPOptions.1
+            // NOTE: IP addresses are also special-encoded here but this is impossible for *this*
+            // application because it never emits periods.
+            let segmentStr = segment.join("");
+            if (/^[0-9]+$/.test(segmentStr)) {
+                result.push("s");
+            }
+
+            result.push("'");
+            result.push(segmentStr);
             result.push("'");
         } else {
             // Try not to infinite loop.
@@ -197,16 +214,45 @@ function decodeSegment(input, idx) {
 function fromMikrotik(s) {
     let result = [];
     for (let i = 0; i < s.length;) {
-        if (s.charAt(i) == "'") {
-            for (i++; i < s.length && s.charAt(i) != "'"; i++) {
+        if (s.substr(i, 2).toLowerCase() == "s'") {
+            // Literal string
+            for (i += 2; i < s.length && s.charAt(i) != "'"; i++) {
                 result.push(s.charCodeAt(i));
             }
 
-            if (s.charAt(i) == "'") {
-                i++;
-            } else {
+            if (s.charAt(i) != "'") {
                 throw "Unterminated string";
             }
+
+            i++;
+        } else if (s.charAt(i) == "'") {
+            // If no 's' prefix then we have to interpret what to do with the contents.
+            let start = i + 1;
+            for (i++; i < s.length && s.charAt(i) != "'"; i++) {}
+
+            if (s.charAt(i) != "'") {
+                throw "Unterminated string";
+            }
+
+            // What to do with this? [See https://help.mikrotik.com/docs/spaces/ROS/pages/24805500/DHCP#DHCP-DHCPOptions.1]
+            let contents = s.substr(start, i - start);
+            if (/^[0-9]+$/.test(contents)) {
+                // Numeric.
+                result.push(parseInt(contents, 10));
+            } else if (/^([0-9]{1,3}\.){3}[0-9]{1,3}$/.test(contents)) {
+                // IP Address (unlikely here but going to implement it anyway.
+                let parts = contents.split(".");
+                for (let j = 0; j < parts.length; j++) {
+                    result.push(parseInt(parts[j], 10));
+                }
+            } else {
+                // Plain string.
+                for (let j = 0; j < contents.length; j++) {
+                    result.push(contents.charCodeAt(j));
+                }
+            }
+
+            i++;
         } else if (s.substr(i, 2).toLowerCase() == "0x") {
             for (i += 2; i < s.length - 1 && isHex(s.substr(i, 2)); i += 2) {
                 result.push(parseInt(s.substr(i, 2), 16));
@@ -303,7 +349,12 @@ function viewmodel() {
                         return;
                     }
 
-                    let result = encodeInput(this.input());
+                    let input = splitInput(this.input());
+                    if (input.length == 0) {
+                        throw "Empty input";
+                    }
+                    
+                    let result = encode(input);
                     this.mikrotik(toMikrotik(result));
                     this.cisco(toCisco(result));
                     this.hex(toHex(result));
@@ -362,3 +413,17 @@ function viewmodel() {
         },
     };
 }
+
+// For Node (testing)
+(module || {}).exports = exports = {
+    splitInput: splitInput,
+    encode: encode,
+    toMikrotik: toMikrotik,
+    toHex: toHex,
+    toCisco: toCisco,
+    decode: decode,
+    readName: readName,
+    decodeSegment: decodeSegment,
+    fromMikrotik: fromMikrotik,
+    fromHex: fromHex,
+};
